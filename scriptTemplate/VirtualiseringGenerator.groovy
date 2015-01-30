@@ -130,11 +130,11 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir){
 		-DhttpEndpointAdress=http://\${TP_HOST}:\${TP_PORT_HTTP}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath
 		-DflowName=${maindomain}-${subdomainFlow}-${artifactId}-${serviceContractVersion}-Interaction-virtualisering-flow
 		-DfeatureKeepaliveValue=\${feature.keepalive.${serviceContractNameSpace}:\${feature.keepalive}}
-		-DfeatureResponseTimeoutValue=\${feature.featureresponsetimeout.${maindomain}.${subdomain}:\${SERVICE_TIMEOUT_MS}}
+		-DfeatureResponseTimeoutValue=\${feature.featureresponsetimeout.${serviceContractNameSpace}:\${SERVICE_TIMEOUT_MS}}
 		-DserviceMethod=${artifactId}
 		-DserviceWsdlFileDir=classpath:/schemas$schemaDir/${artifactId}Interaction/${wsdlFileName}
 		-DserviceNamespace=${serviceInteractionNameSpace}
-    -DwsdlServiceName=${artifactId}ResponderService"
+    	-DwsdlServiceName=${artifactId}ResponderService"
 		"""
 		println "$mvnCommand"
 
