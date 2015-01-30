@@ -68,6 +68,14 @@ def getServiceContractNameSpace(xsdFile){
 	return featureKeepAliveServiceContractNameSpace
 }
 
+def getServiceContractVersion(xsdFile){
+	def serviceContractVersion = 'No service contract version found'
+
+	//Read version from root element
+	serviceContractVersion = new SAXReader().read(xsdFile).getRootElement().attributeValue("version")
+	return serviceContractVersion
+}
+
 def buildVirtualServices(serviceInteractionDirectories, targetDir){
 
 	serviceInteractionDirectories.each { serviceInteractionDirectory ->
@@ -102,11 +110,11 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir){
 		def wsdlFileName = wsdlFiles[0].name
 
 		//Version of the service contract e.g Tidbokning 1.1.0
-		def serviceContractVersion = '3.1.0'
-    def virtualizationVersion = '1.0-SNAPSHOT'
+    	def virtualizationVersion = '1.0-SNAPSHOT'
 
 		def serviceContractNameSpace = getServiceContractNameSpace(xsdFiles[0])
-
+		def serviceContractVersion = getServiceContractVersion(xsdFiles[0])
+		
 		//För tjänster som skall ha subdomän i ändpunktens adressen eller inte
 		//-DhttpsEndpointAdress=https://\${TP_HOST}:\${TP_PORT}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath
 		//-DhttpEndpointAdress=http://\${TP_HOST}:\${TP_PORT_HTTP}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath
