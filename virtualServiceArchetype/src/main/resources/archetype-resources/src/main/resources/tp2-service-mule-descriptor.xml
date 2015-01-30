@@ -31,16 +31,16 @@
         	    address="${httpsEndpointAdress}"
            		connector-ref="VPProducerConnector"
             	exchange-pattern="request-response"
-            	responseTransformer-refs="featureKeepAliveResponse filterResponseHeaders">
+            	responseTransformer-refs="featureKeepAliveResponse wsdlQueryResponse filterResponseHeaders">
             	<properties>
         			<spring:entry key="featureUseKeepAlive" value="${featureKeepaliveValue}"/>
-              <spring:entry key="featureResponseTimeout" value="${featureResponseTimeoutValue}"/>
+              		<spring:entry key="featureResponseTimeout" value="${featureResponseTimeoutValue}"/>
         		</properties>
         	</https:inbound-endpoint>
         	<http:inbound-endpoint
         	    address="${httpEndpointAdress}"
             	exchange-pattern="request-response"
-            	responseTransformer-refs="filterResponseHeaders">
+            	responseTransformer-refs="wsdlQueryResponse filterResponseHeaders">
               <properties>
               <spring:entry key="featureResponseTimeout" value="${featureResponseTimeoutValue}"/>
             </properties>
