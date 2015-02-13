@@ -68,6 +68,32 @@ def getServiceContractNameSpace(xsdFile){
 	return featureKeepAliveServiceContractNameSpace
 }
 
+def checkIfVersionNumbersInNameSpaces(serviceInteractionDirectories) {
+	def found = false
+	serviceInteractionDirectories.each { serviceInteractionDirectory ->
+		def xsdFiles = getAllFilesMatching(serviceInteractionDirectory, /.*\.xsd/)
+		// Check that namespace has a 1-digit version number, if not fail!
+		def version = getServiceContractNameSpaceVersion(xsdFiles[0])
+		if (version.indexOf('.') > 0 ) {
+			found = true
+			println "Incorrect version number for the following service contract! " + serviceInteractionDirectory.toString() + ". Version is: " + version 
+		}
+	}
+	return found
+}
+
+def getServiceContractNameSpaceVersion(xsdFile){
+	def featureServiceContractNameSpaceVersion= ''
+
+	new SAXReader().read(xsdFile).getRootElement().declaredNamespaces().grep(~/.*urn:riv.*/).each{ namespace ->
+		if(namespace.text.contains('Responder')){
+			featureServiceContractNameSpaceVersion = namespace.text.substring(namespace.text.lastIndexOf(':')+1, namespace.text.length())
+		}
+	}
+	return featureServiceContractNameSpaceVersion
+}
+
+
 def getServiceContractVersion(xsdFile){
 	def serviceContractVersion = 'No service contract version found'
 
@@ -231,6 +257,15 @@ if (getAllDirectoriesMatching(coreSchemaDirectory, /.*/).size() > 0) {
 	println ""
 	println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 	println "Found directories in directory core_schemas, aborting..."
+	println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+	System.exit(0)
+}
+
+if (checkIfVersionNumbersInNameSpaces(serviceInteractionDirectories)) {
+	println ""
+	println ""
+	println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+	println "Found incorrect versions in namespaces, aborting..."
 	println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 	System.exit(0)
 }
