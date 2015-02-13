@@ -13,7 +13,7 @@ import org.apache.commons.io.FileUtils
 import org.dom4j.io.SAXReader
 
 /**
- * This script should help us to generate many services at one time.
+ * This script helps us to generate many services at one time.
  *
  * PREREQUISITES:
  * This script is depending on the archetype named service-archetype.
@@ -225,6 +225,15 @@ new File("${targetDir}/pom.xml") << new File("pomtemplate.xml").asWritable()
 
 def serviceInteractionDirectories = getAllDirectoriesMatching(sourceDir,/.*Interaction$/)
 def coreSchemaDirectory = getAllDirectoriesMatching(sourceDir,/core_components/)[0]
+
+if (getAllDirectoriesMatching(coreSchemaDirectory, /.*/).size() > 0) {
+	println ""
+	println ""
+	println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+	println "Found directories in directory core_schemas, aborting..."
+	println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+	System.exit(0)
+}
 
 buildVirtualServices(serviceInteractionDirectories, targetDir)
 copyServiceSchemas(serviceInteractionDirectories, targetDir)
