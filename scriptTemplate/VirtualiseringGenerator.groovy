@@ -135,8 +135,8 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir){
 		def serviceRelativePath = "$artifactId/$serviceVersion/$rivtaVersion"
 		def wsdlFileName = wsdlFiles[0].name
 
-		//Version of generated virtualization
-    	def virtualizationVersion = '1.0-SNAPSHOT'
+		//Version of generator for virtualization
+    	def virtualizationGeneratorVersion = 'v2.0'
 
 		def serviceContractNameSpace = getServiceContractNameSpace(xsdFiles[0])
 		def serviceContractVersion = getServiceContractVersion(xsdFiles[0])
@@ -158,8 +158,8 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir){
 		-Duser.dir=${targetDir}
 		-DgroupId=se.skltp.virtualservices.${maindomain}.${subdomainGroupId}
 		-DartifactId=${artifactId}
-		-Dversion=${virtualizationVersion}
-		-DvirtualiseringArtifactId=${maindomain}-${subdomainFlow}-${serviceContractVersion}-${artifactId}-virtualisering
+		-Dversion=${virtualizationGeneratorVersion}
+		-DvirtualiseringArtifactId=${maindomain}-${subdomainFlow}-${artifactId}-${serviceContractVersion}-virtualisering
     	-DhttpsEndpointAdress=https://\${TP_HOST}:\${TP_PORT}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath
 		-DhttpEndpointAdress=http://\${TP_HOST}:\${TP_PORT_HTTP}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath
 		-DflowName=${maindomain}-${subdomainFlow}-${artifactId}-${serviceContractVersion}-Interaction-virtualisering-flow
@@ -246,9 +246,6 @@ if( args.size() < 1){
 def sourceDir = new File(args[0])
 def targetDir = new File(".").getAbsolutePath()
 
-new File("pom.xml").delete()
-new File("${targetDir}/pom.xml") << new File("pomtemplate.xml").asWritable()
-
 def serviceInteractionDirectories = getAllDirectoriesMatching(sourceDir,/.*Interaction$/)
 def coreSchemaDirectory = getAllDirectoriesMatching(sourceDir,/core_components/)[0]
 
@@ -269,6 +266,9 @@ if (checkIfVersionNumbersInNameSpaces(serviceInteractionDirectories)) {
 	println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 	System.exit(0)
 }
+
+new File("pom.xml").delete()
+new File("${targetDir}/pom.xml") << new File("pomtemplate.xml").asWritable()
 
 buildVirtualServices(serviceInteractionDirectories, targetDir)
 copyServiceSchemas(serviceInteractionDirectories, targetDir)
