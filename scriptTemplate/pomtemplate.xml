@@ -22,19 +22,13 @@
 
   <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-
-  <!-- groupId is se.skltp.virtualservices.<domain>.<subdomains...>, e.g: se.skltp.virtualservices.insuranceprocess.healthreporting -->
-   <groupId>se.skltp.generator</groupId>
-
-  <!-- artifactId is <domain>-<subdomain>-<servicedomain version>, e.g: insuranceprocess-healthreporting-3.1.0. -->
-   <artifactId>virtualization</artifactId>
-
-  <!-- version of generated virtualization, not the same as version of service contract that is reflected in artifactId. -->
-  <version>1.0</version>
+  <groupId>se.skltp.virtualservices.tools</groupId>
+  <artifactId>generator</artifactId>
+  <version>2.0</version>
 
   <packaging>pom</packaging>
   <name>${project.artifactId}</name>
-  <description>Generated with template (archetypeVersion) 1.6-SNAPSHOT</description>
+  <description>Generated with template (archetypeVersion) 2.0</description>
 
   <properties>
 	<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -46,17 +40,26 @@
   </modules>
 
 	<build>
-		<plugins>
-  			<plugin>
-  				<groupId>org.apache.maven.plugins</groupId>
-  				<artifactId>maven-compiler-plugin</artifactId>
-  				<version>2.3.2</version>
-  				<configuration>
-  					<source>1.7</source>
-  					<target>1.7</target>
-  				</configuration>
-  			</plugin>
-		</plugins>
+  <plugins>
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <version>2.3.2</version>
+    <configuration>
+     <source>1.7</source>
+     <target>1.7</target>
+    </configuration>
+   </plugin>
+   <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-jar-plugin</artifactId>
+    <configuration>
+     <archive>
+      <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
+     </archive>
+    </configuration>
+   </plugin>
+  </plugins>
 	</build>
 
 </project>

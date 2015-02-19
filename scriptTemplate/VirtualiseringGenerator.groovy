@@ -141,20 +141,19 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir){
 		def serviceContractNameSpace = getServiceContractNameSpace(xsdFiles[0])
 		def serviceContractVersion = getServiceContractVersion(xsdFiles[0])
 		
-		//För tjänster som skall ha subdomän i ändpunktens adressen eller inte
-		//-DhttpsEndpointAdress=https://\${TP_HOST}:\${TP_PORT}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath
-		//-DhttpEndpointAdress=http://\${TP_HOST}:\${TP_PORT_HTTP}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath
-		//-DhttpsEndpointAdress=https://\${TP_HOST}:\${TP_PORT}/\${TP_BASE_URI}/$serviceRelativePath
-		//-DhttpEndpointAdress=http://\${TP_HOST}:\${TP_PORT_HTTP}/\${TP_BASE_URI}/$serviceRelativePath
-
-		//För tjänster som skall ha möjlighet att ställa in response timeout per tjänstedomän
-		//-DfeatureResponseTimeoutValue=\${feature.featureresponsetimeout.${maindomain}.${subdomain}:\${SERVICE_TIMEOUT_MS}}
+		// För tjänster som skall ha subdomän i ändpunktens adressen (default)
+		// -DhttpsEndpointAdress=https://\${TP_HOST}:\${TP_PORT}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath
+		// -DhttpEndpointAdress=http://\${TP_HOST}:\${TP_PORT_HTTP}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath
+		
+		// För tjänster som INTE skall ha subdomän i ändpunktens adressen (default)
+		// -DhttpsEndpointAdress=https://\${TP_HOST}:\${TP_PORT}/\${TP_BASE_URI}/$serviceRelativePath
+		// -DhttpEndpointAdress=http://\${TP_HOST}:\${TP_PORT_HTTP}/\${TP_BASE_URI}/$serviceRelativePath
 
 		def mvnCommand = """mvn archetype:generate
 		-DinteractiveMode=false
 		-DarchetypeArtifactId=virtualServiceArchetype
 		-DarchetypeGroupId=se.skltp.virtualservices.tools
-		-DarchetypeVersion=1.6-SNAPSHOT
+		-DarchetypeVersion=2.0
 		-Duser.dir=${targetDir}
 		-DgroupId=se.skltp.virtualservices.${maindomain}.${subdomainGroupId}
 		-DartifactId=${artifactId}
@@ -223,8 +222,24 @@ def copyCoreSchemas(serviceInteractionDirectories, coreSchemaDirectory, targetDi
 			def targetSchemaFile = new File("${coreSchemaTargetDir}/$sourceSchemaFile.name")
 			FileUtils.copyFile(sourceSchemaFile, targetSchemaFile)}
 	}
-
 }
+
+def addManifestFile(serviceInteractionDirectories, targetDir, zipFileName){
+	manifestFile = new File("MANIFEST.MF").asWritable()
+	String contents = "Zipfilename: " + zipFileName + System.getProperty('line.separator')
+	manifestFile.write(contents)
+	
+	serviceInteractionDirectories.each { serviceInteractionDirectory ->
+		def serviceInteraction = serviceInteractionDirectory.name
+		def serviceDirectory = serviceInteraction - 'Interaction'
+		def metainfTargetDir = "${targetDir}/${serviceDirectory}/src/main/resources/META-INF"
+		new File("${metainfTargetDir}").mkdirs()
+		
+		def targetManifestFile = new File("${metainfTargetDir}/MANIFEST.MF")
+		FileUtils.copyFile(manifestFile,  targetManifestFile)
+	}
+}
+
 
 if( args.size() < 1){
 	println "This tool generates service virtualising components based on service interactions found in sourceDir. They are generated in the dir where script is executed."
@@ -273,6 +288,11 @@ new File("${targetDir}/pom.xml") << new File("pomtemplate.xml").asWritable()
 buildVirtualServices(serviceInteractionDirectories, targetDir)
 copyServiceSchemas(serviceInteractionDirectories, targetDir)
 copyCoreSchemas(serviceInteractionDirectories, coreSchemaDirectory, targetDir)
+if (args.length > 1) {
+	addManifestFile(serviceInteractionDirectories, targetDir, args[1])
+} else {
+	addManifestFile(serviceInteractionDirectories, targetDir, '')
+} 
 
 println ""
 println ""
