@@ -136,7 +136,7 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir){
 		def wsdlFileName = wsdlFiles[0].name
 
 		//Version of generator for virtualization
-    	def virtualizationGeneratorVersion = 'v2.0'
+    	def virtualizationGeneratorVersion = 'virtGen-2.0'
 
 		def serviceContractNameSpace = getServiceContractNameSpace(xsdFiles[0])
 		def serviceContractVersion = getServiceContractVersion(xsdFiles[0])
