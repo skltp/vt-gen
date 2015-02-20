@@ -102,7 +102,7 @@ def getServiceContractVersion(xsdFile){
 	return serviceContractVersion
 }
 
-def buildVirtualServices(serviceInteractionDirectories, targetDir){
+def buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomainVersion){
 
 	serviceInteractionDirectories.each { serviceInteractionDirectory ->
 
@@ -158,7 +158,7 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir){
 		-DgroupId=se.skltp.virtualservices.${maindomain}.${subdomainGroupId}
 		-DartifactId=${artifactId}
 		-Dversion=${virtualizationGeneratorVersion}
-		-DvirtualiseringArtifactId=${maindomain}-${subdomainFlow}-${artifactId}-${serviceContractVersion}-virtualisering
+		-DvirtualiseringArtifactId=${maindomain}-${subdomainFlow}-${servicedomainVersion}-${artifactId}-${serviceContractVersion}
     	-DhttpsEndpointAdress=https://\${TP_HOST}:\${TP_PORT}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath
 		-DhttpEndpointAdress=http://\${TP_HOST}:\${TP_PORT_HTTP}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath
 		-DflowName=${maindomain}-${subdomainFlow}-${artifactId}-${serviceContractVersion}-Interaction-virtualisering-flow
@@ -224,24 +224,7 @@ def copyCoreSchemas(serviceInteractionDirectories, coreSchemaDirectory, targetDi
 	}
 }
 
-def addManifestFile(serviceInteractionDirectories, targetDir, zipFileName){
-	manifestFile = new File("MANIFEST.MF").asWritable()
-	String contents = "Zipfilename: " + zipFileName + System.getProperty('line.separator')
-	manifestFile.write(contents)
-	
-	serviceInteractionDirectories.each { serviceInteractionDirectory ->
-		def serviceInteraction = serviceInteractionDirectory.name
-		def serviceDirectory = serviceInteraction - 'Interaction'
-		def metainfTargetDir = "${targetDir}/${serviceDirectory}/src/main/resources/META-INF"
-		new File("${metainfTargetDir}").mkdirs()
-		
-		def targetManifestFile = new File("${metainfTargetDir}/MANIFEST.MF")
-		FileUtils.copyFile(manifestFile,  targetManifestFile)
-	}
-}
-
-
-if( args.size() < 1){
+if( args.size() < 2){
 	println "This tool generates service virtualising components based on service interactions found in sourceDir. They are generated in the dir where script is executed."
 	println "Point sourceDir to the schemas dir containing:"
 	println "core_components"
@@ -252,6 +235,7 @@ if( args.size() < 1){
 	println "Required parameters: source directory [sourceDir] \n"
 	println "PARAMETERS DESCRIPTION:"
 	println "[sourceDir] is the base direcory where this script will start working to look for servivce interactions, e.g /repository/rivta/ServiceInteractions/riv/crm/scheduling/trunk "
+	println "[servicedomain version] is the version for the service domain, e.g 2.1.0-RC2"
 	println ""
 	println "OUTPUT:"
 	println "New maven folders containing service interactions"
@@ -259,6 +243,7 @@ if( args.size() < 1){
 }
 
 def sourceDir = new File(args[0])
+def servicedomainVersion = args[1]
 def targetDir = new File(".").getAbsolutePath()
 
 def serviceInteractionDirectories = getAllDirectoriesMatching(sourceDir,/.*Interaction$/)
@@ -285,14 +270,9 @@ if (checkIfVersionNumbersInNameSpaces(serviceInteractionDirectories)) {
 new File("pom.xml").delete()
 new File("${targetDir}/pom.xml") << new File("pomtemplate.xml").asWritable()
 
-buildVirtualServices(serviceInteractionDirectories, targetDir)
+buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomainVersion)
 copyServiceSchemas(serviceInteractionDirectories, targetDir)
 copyCoreSchemas(serviceInteractionDirectories, coreSchemaDirectory, targetDir)
-if (args.length > 1) {
-	addManifestFile(serviceInteractionDirectories, targetDir, args[1])
-} else {
-	addManifestFile(serviceInteractionDirectories, targetDir, '')
-} 
 
 println ""
 println ""
