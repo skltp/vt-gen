@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<archetype-descriptor
+	xsi:schemaLocation="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0 http://maven.apache.org/xsd/archetype-descriptor-1.0.0.xsd"
+	name="service-virtualisering"
+	xmlns="http://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+	<requiredProperties>
+		<requiredProperty key="httpsEndpointAdress" />
+		<requiredProperty key="httpEndpointAdress" />
+		<requiredProperty key="flowName" />
+		<requiredProperty key="virtualiseringArtifactId" />
+		<requiredProperty key="featureKeepaliveValue" />
+		<requiredProperty key="featureResponseTimeoutValue" />
+		<requiredProperty key="serviceMethod">
+			<defaultValue>${artifactId}</defaultValue>
+		</requiredProperty>
+		<requiredProperty key="serviceWsdlFileDir">
+			<defaultValue>${serviceWsdlFileDir}</defaultValue>
+		</requiredProperty>
+		<requiredProperty key="serviceNamespace">
+			<defaultValue>${serviceNamespace}</defaultValue>
+		</requiredProperty>
+		<requiredProperty key="wsdlServiceName">
+			<defaultValue>${wsdlServiceName}</defaultValue>
+		</requiredProperty>
+	</requiredProperties>
+
+	<fileSets>
+		<fileSet filtered="true" encoding="UTF-8">
+			<directory>src/main/resources</directory>
+			<includes>
+				<include>tp2-service-mule-descriptor.xml</include>
+			</includes>
+		</fileSet>
+		<fileSet encoding="UTF-8">
+			<directory>src/main/resources</directory>
+			<includes>
+				<include>**/*.wsdl</include>
+				<include>**/*.xsd</include>
+			</includes>
+		</fileSet>
+	</fileSets>
+
+</archetype-descriptor>
