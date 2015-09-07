@@ -39,7 +39,8 @@
         	</https:inbound-endpoint>
         	<http:inbound-endpoint
         	    address="${httpEndpointAdress}"
-            	exchange-pattern="request-response"
+        	    connector-ref="VPInsecureConnector"
+        	    exchange-pattern="request-response"
             	responseTransformer-refs="wsdlQueryResponse filterResponseHeaders">
               <properties>
               <spring:entry key="featureResponseTimeout" value="${featureResponseTimeoutValue}"/>
