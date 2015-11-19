@@ -149,11 +149,11 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomain
 		// -DhttpsEndpointAdress=https://\${TP_HOST}:\${TP_PORT}/\${TP_BASE_URI}/$serviceRelativePath
 		// -DhttpEndpointAdress=http://\${TP_HOST}:\${TP_PORT_HTTP}/\${TP_BASE_URI}/$serviceRelativePath
 
-		def mvnCommand = """mvn archetype:generate
+		def mvnCommand = """archetype:generate
 		-DinteractiveMode=false
 		-DarchetypeArtifactId=virtualServiceArchetype
 		-DarchetypeGroupId=se.skltp.virtualservices.tools
-		-DarchetypeVersion=2.1
+		-DarchetypeVersion=2.0
 		-Duser.dir=${targetDir}
 		-DgroupId=se.skltp.virtualservices.${maindomain}.${subdomainGroupId}
 		-DartifactId=${artifactId}
@@ -167,8 +167,17 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomain
 		-DserviceMethod=${artifactId}
 		-DserviceWsdlFileDir=classpath:/schemas$schemaDir/${artifactId}Interaction/${wsdlFileName}
 		-DserviceNamespace=${serviceInteractionNameSpace}
-    	-DwsdlServiceName=${artifactId}ResponderService"
+    	-DwsdlServiceName=${artifactId}ResponderService
 		"""
+
+		if (System.properties['os.name'].toLowerCase().contains("windows")) {
+			mvnCommand = "mvn.cmd " + mvnCommand + " 1> mvn.out 2>&1"
+			mvnCommand = mvnCommand.replaceAll("\n","^\n")
+			print mvnCommand
+		} else {
+			mvnCommand = "mvn " +  mvnCommand
+		}
+
 		println "$mvnCommand"
 
 		def process = mvnCommand.execute()
