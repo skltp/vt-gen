@@ -167,7 +167,7 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomain
 		def wsdlFileName = wsdlFiles[0].name
 
 		//Version of generator for virtualization
-    	def virtualizationGeneratorVersion = 'virtGen-2.0'
+    	def virtualizationGeneratorVersion = 'virtGen-2.1'
 
 		def serviceContractNameSpace = getServiceContractNameSpace(xsdFiles[0])
 		def serviceContractVersion = getServiceContractVersion(xsdFiles[0])
@@ -184,7 +184,7 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomain
 		-DinteractiveMode=false
 		-DarchetypeArtifactId=virtualServiceArchetype
 		-DarchetypeGroupId=se.skltp.virtualservices.tools
-		-DarchetypeVersion=2.0
+		-DarchetypeVersion=2.1
 		-Duser.dir=${targetDir}
 		-DgroupId=se.skltp.virtualservices.${maindomain}.${subdomainGroupId}
 		-DartifactId=${artifactId}
