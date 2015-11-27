@@ -68,18 +68,49 @@ def getServiceContractNameSpace(xsdFile){
 	return featureKeepAliveServiceContractNameSpace
 }
 
-def checkIfVersionNumbersInNameSpaces(serviceInteractionDirectories) {
+def checkDirectoriesAndFiles(serviceInteractionDirectories) {
 	def found = false
+	def multiple = false
 	serviceInteractionDirectories.each { serviceInteractionDirectory ->
-		def xsdFiles = getAllFilesMatching(serviceInteractionDirectory, /.*\.xsd/)
+		if (getAllFilesMatching(serviceInteractionDirectory, /.*\.wsdl/).size() != 1) {
+			multiple = true
+			println "ERROR: Found multiple WSDL files in " + serviceInteractionDirectory.toString()
+			println "\tPlease only supply one WSDL file for each contract!"
+		}
+
+		def xsdFiles = getAllFilesMatching(serviceInteractionDirectory, /.*\.xsd/).findAll { file ->
+			!(file.name ==~ /.*_ext.*/)
+		}
+
+		if (xsdFiles.size() != 1) {
+			multiple = true
+			println "ERROR: Found more than one XSD file in " + serviceInteractionDirectory.toString()
+			xsdFiles.each {file -> println("\t" + file.name)}
+		}
+
 		// Check that namespace has a 1-digit version number, if not fail!
 		def version = getServiceContractNameSpaceVersion(xsdFiles[0])
-		if (version.indexOf('.') > 0 ) {
+		if (version.indexOf('.') > 0) {
 			found = true
-			println "Incorrect version number for the following service contract! " + serviceInteractionDirectory.toString() + ". Version is: " + version 
+			println "Incorrect version number for the following service contract! " + serviceInteractionDirectory.toString() + ". Version is: " + version
 		}
 	}
-	return found
+
+	if (multiple) {
+		println ""
+		println ""
+		println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+		println "Found multiple XSD and/or WSDL files, aborting..."
+		println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+		System.exit(0)
+	} else if (found) {
+		println ""
+		println ""
+		println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+		println "Found incorrect versions in namespaces, aborting..."
+		println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+		System.exit(0)
+	}
 }
 
 def getServiceContractNameSpaceVersion(xsdFile){
@@ -173,7 +204,6 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomain
 		if (System.properties['os.name'].toLowerCase().contains("windows")) {
 			mvnCommand = "mvn.cmd " + mvnCommand + " 1> mvn.out 2>&1"
 			mvnCommand = mvnCommand.replaceAll("\n","^\n")
-			print mvnCommand
 		} else {
 			mvnCommand = "mvn " +  mvnCommand
 		}
@@ -220,16 +250,13 @@ def copyServiceSchemas(serviceInteractionDirectories, targetDir){
 
 def copyCoreSchemas(serviceInteractionDirectories, coreSchemaDirectory, targetDir){
 	serviceInteractionDirectories.each { serviceInteractionDirectory ->
+
 		def schemasFiles = getAllFilesMatching(coreSchemaDirectory, /.*\.xsd/)
 
 		def serviceInteraction = serviceInteractionDirectory.name
 		def serviceDirectory = serviceInteraction - 'Interaction'
 		def coreSchemaTargetDir = "${targetDir}/${serviceDirectory}/src/main/resources/schemas/core_components"
-		new File("${coreSchemaTargetDir}").mkdirs()
-
-		schemasFiles.each {sourceSchemaFile ->
-			def targetSchemaFile = new File("${coreSchemaTargetDir}/$sourceSchemaFile.name")
-			FileUtils.copyFile(sourceSchemaFile, targetSchemaFile)}
+		FileUtils.copyDirectory(coreSchemaDirectory, new File(coreSchemaTargetDir))
 	}
 }
 
@@ -258,23 +285,7 @@ def targetDir = new File(".").getAbsolutePath()
 def serviceInteractionDirectories = getAllDirectoriesMatching(sourceDir,/.*Interaction$/)
 def coreSchemaDirectory = getAllDirectoriesMatching(sourceDir,/core_components/)[0]
 
-if (getAllDirectoriesMatching(coreSchemaDirectory, /.*/).size() > 0) {
-	println ""
-	println ""
-	println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-	println "Found directories in directory core_schemas, aborting..."
-	println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-	System.exit(0)
-}
-
-if (checkIfVersionNumbersInNameSpaces(serviceInteractionDirectories)) {
-	println ""
-	println ""
-	println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-	println "Found incorrect versions in namespaces, aborting..."
-	println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-	System.exit(0)
-}
+checkDirectoriesAndFiles(serviceInteractionDirectories)
 
 new File("pom.xml").delete()
 new File("${targetDir}/pom.xml") << new File("pomtemplate.xml").asWritable()
