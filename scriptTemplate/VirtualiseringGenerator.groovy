@@ -138,6 +138,8 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomain
 	serviceInteractionDirectories.each { serviceInteractionDirectory ->
 
 		def (name, schemaDir) = serviceInteractionDirectory.parent.split("schemas")
+		schemaDir = schemaDir.replace('\\','/') // If generated on windows till will have the '\' separator that will break mule.
+
 		def artifactId = serviceInteractionDirectory.name - 'Interaction'
 
 		def wsdlFiles = getAllFilesMatching(serviceInteractionDirectory, /.*\.wsdl/)
