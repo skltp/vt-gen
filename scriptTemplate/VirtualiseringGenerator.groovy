@@ -61,7 +61,7 @@ def getServiceContractNameSpace(xsdFile){
 	//Build keep alive feature settings "feature.keepalive.servicecontractnamespace" using . (dots) instead of : (colons)
 	//Ignore minor version number when coming to feature settings
 	new SAXReader().read(xsdFile).getRootElement().declaredNamespaces().grep(~/.*urn:riv.*/).each{ namespace ->
-		if(namespace.text.contains('Responder') &! namespace.text.contains('.')){
+		if(namespace.text.contains('Responder')){
 			featureKeepAliveServiceContractNameSpace = namespace.text.replaceAll(':', '.')
 		}
 	}
@@ -204,7 +204,7 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomain
 		"""
 
 		if (System.properties['os.name'].toLowerCase().contains("windows")) {
-			mvnCommand = "mvn.cmd " + mvnCommand + " 1> mvn.out 2>&1"
+			mvnCommand = "mvn.cmd " + mvnCommand + " 1>> mvn.out 2>>&1"
 			mvnCommand = mvnCommand.replaceAll("\n","^\n")
 		} else {
 			mvnCommand = "mvn " +  mvnCommand
