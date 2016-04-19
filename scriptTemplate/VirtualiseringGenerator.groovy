@@ -117,7 +117,7 @@ def getServiceContractNameSpaceVersion(xsdFile){
 	def featureServiceContractNameSpaceVersion= ''
 
 	new SAXReader().read(xsdFile).getRootElement().declaredNamespaces().grep(~/.*urn:riv.*/).each{ namespace ->
-		if(namespace.text.contains('Responder')){
+		if(namespace.text.contains('Responder') && featureServiceContractNameSpaceVersion == ''){
 			featureServiceContractNameSpaceVersion = namespace.text.substring(namespace.text.lastIndexOf(':')+1, namespace.text.length())
 		}
 	}
