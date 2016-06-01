@@ -114,13 +114,9 @@ def checkDirectoriesAndFiles(serviceInteractionDirectories) {
 }
 
 def getServiceContractNameSpaceVersion(xsdFile){
-	def featureServiceContractNameSpaceVersion= ''
+	def namespace = new SAXReader().read(xsdFile).getRootElement().attribute("targetNamespace");
+	def featureServiceContractNameSpaceVersion = namespace.text.substring(namespace.text.lastIndexOf(':')+1, namespace.text.length());
 
-	new SAXReader().read(xsdFile).getRootElement().declaredNamespaces().grep(~/.*urn:riv.*/).each{ namespace ->
-		if(namespace.text.contains('Responder') && featureServiceContractNameSpaceVersion == ''){
-			featureServiceContractNameSpaceVersion = namespace.text.substring(namespace.text.lastIndexOf(':')+1, namespace.text.length())
-		}
-	}
 	return featureServiceContractNameSpaceVersion
 }
 
