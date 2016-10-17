@@ -129,7 +129,7 @@ def getServiceContractVersion(xsdFile){
 	return serviceContractVersion
 }
 
-def buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomainVersion){
+def buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomainVersion, shortname){
 
 	serviceInteractionDirectories.each { serviceInteractionDirectory ->
 
@@ -170,14 +170,18 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomain
 		def serviceContractNameSpace = getServiceContractNameSpace(xsdFiles[0])
 		def serviceContractVersion = getServiceContractVersion(xsdFiles[0])
 		
-		// För tjänster som skall ha subdomän i ändpunktens adressen (default)
-		// -DhttpsEndpointAdress=https://\${TP_HOST}:\${TP_PORT}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath
-		// -DhttpEndpointAdress=http://\${TP_HOST}:\${TP_PORT_HTTP}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath
+		def endpoinAddress1 = ""
+		def endpointAddress2 = ""
+		if(shortname.size() == 0) {
+		   // För tjänster som skall ha subdomän i ändpunktens adressen (default)
+		   endpointAddress1 = "-DhttpsEndpointAdress=https://\${TP_HOST}:\${TP_PORT}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath"
+		   endpointAddress2 = "-DhttpEndpointAdress=http://\${TP_HOST}:\${TP_PORT_HTTP}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath"
+		} else {
+		   // För tjänster som INTE skall ha subdomän i ändpunktens adressen (default)
+		  endpointAddress1 = "-DhttpsEndpointAdress=https://\${TP_HOST}:\${TP_PORT}/\${TP_BASE_URI}/$serviceRelativePath"
+		  endpointAddress2 = "-DhttpEndpointAdress=http://\${TP_HOST}:\${TP_PORT_HTTP}/\${TP_BASE_URI}/$serviceRelativePath"
+		}
 		
-		// För tjänster som INTE skall ha subdomän i ändpunktens adressen (default)
-		// -DhttpsEndpointAdress=https://\${TP_HOST}:\${TP_PORT}/\${TP_BASE_URI}/$serviceRelativePath
-		// -DhttpEndpointAdress=http://\${TP_HOST}:\${TP_PORT_HTTP}/\${TP_BASE_URI}/$serviceRelativePath
-
 		def mvnCommand = """archetype:generate
 		-DinteractiveMode=false
 		-DarchetypeArtifactId=virtualServiceArchetype
@@ -188,8 +192,8 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomain
 		-DartifactId=${artifactId}
 		-Dversion=${virtualizationGeneratorVersion}
 		-DvirtualiseringArtifactId=${maindomain}-${subdomainFlow}-${servicedomainVersion}-${artifactId}-${serviceContractVersion}
-    	-DhttpsEndpointAdress=https://\${TP_HOST}:\${TP_PORT}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath
-		-DhttpEndpointAdress=http://\${TP_HOST}:\${TP_PORT_HTTP}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath
+		 $endpointAddress1
+		 $endpointAddress2
 		-DflowName=${maindomain}-${subdomainFlow}-${artifactId}-${serviceContractVersion}-Interaction-virtualisering-flow
 		-DfeatureKeepaliveValue=\${feature.keepalive.${serviceContractNameSpace}:\${feature.keepalive}}
 		-DfeatureResponseTimeoutValue=\${feature.featureresponsetimeout.${serviceContractNameSpace}:\${SERVICE_TIMEOUT_MS}}
@@ -270,6 +274,7 @@ if( args.size() < 2){
 	println "PARAMETERS DESCRIPTION:"
 	println "[sourceDir] is the base direcory where this script will start working to look for servivce interactions, e.g /repository/rivta/ServiceInteractions/riv/crm/scheduling/trunk "
 	println "[servicedomain version] is the version for the service domain, e.g 2.1.0-RC2"
+	println "[shortname] (optional). If it has a value no subdomain is added to the endpoint URL."
 	println ""
 	println "OUTPUT:"
 	println "New maven folders containing service interactions"
@@ -279,6 +284,9 @@ if( args.size() < 2){
 def sourceDir = new File(args[0])
 def servicedomainVersion = args[1]
 def targetDir = new File(".").getAbsolutePath()
+def shortname = ""
+if(args.size() > 2)
+  shortname = args[2]
 
 def serviceInteractionDirectories = getAllDirectoriesMatching(sourceDir,/.*Interaction$/)
 def coreSchemaDirectory = getAllDirectoriesMatching(sourceDir,/core_components/)[0]
@@ -288,7 +296,7 @@ checkDirectoriesAndFiles(serviceInteractionDirectories)
 new File("pom.xml").delete()
 new File("${targetDir}/pom.xml") << new File("pomtemplate.xml").asWritable()
 
-buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomainVersion)
+buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomainVersion, shortname)
 copyServiceSchemas(serviceInteractionDirectories, targetDir)
 copyCoreSchemas(serviceInteractionDirectories, coreSchemaDirectory, targetDir)
 
