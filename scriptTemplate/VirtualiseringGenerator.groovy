@@ -220,7 +220,7 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomain
 			mvnCommand = "mvn.cmd " + mvnCommand + " 1>> mvn.out 2>>&1"
 			mvnCommand = mvnCommand.replaceAll("\n","^\n")
 		} else {
-			mvnCommand = "mvn --debug " +  mvnCommand
+			mvnCommand = "mvn " +  mvnCommand
 		}
 
 		println "$mvnCommand"
