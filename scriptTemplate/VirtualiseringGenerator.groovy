@@ -301,8 +301,6 @@ println "shortname: ${shortname}"
 println "scriptDir: ${scriptDir}"
 println "targetDir: ${targetDir}"
 
-System.exit(-1)
-
 def serviceInteractionDirectories = getAllDirectoriesMatching(sourceDir,/.*Interaction$/)
 def coreSchemaDirectory = getAllDirectoriesMatching(sourceDir,/core_components/)[0]
 
