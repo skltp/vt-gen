@@ -164,14 +164,11 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomain
 		def serviceRelativePath = "$artifactId/$serviceVersion/$rivtaVersion"
 		def wsdlFileName = wsdlFiles[0].name
 
-		//Version of generator for virtualization
-    	def virtualizationGeneratorVersion = 'virtGen-2.1'
-
 		def serviceContractNameSpace = getServiceContractNameSpace(xsdFiles[0])
 		def serviceContractVersion = getServiceContractVersion(xsdFiles[0])
 		
-		def endpoinAddress1 = ""
-		def endpointAddress2 = ""
+		def endpointAddress1
+		def endpointAddress2
 		if(shortname.size() == 0) {
 		   // För tjänster som skall ha subdomän i ändpunktens adressen (default)
 		   endpointAddress1 = "-DhttpsEndpointAdress=https://\${TP_HOST}:\${TP_PORT}/\${TP_BASE_URI}/$maindomain/$subdomainAdress/$serviceRelativePath"
@@ -190,8 +187,8 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomain
 		-Duser.dir=${targetDir}
 		-DgroupId=se.skltp.virtualservices.${maindomain}.${subdomainGroupId}
 		-DartifactId=${artifactId}
-		-Dversion=${virtualizationGeneratorVersion}
-		-DvirtualiseringArtifactId=${maindomain}-${subdomainFlow}-${servicedomainVersion}-${artifactId}-${serviceContractVersion}
+		-Dversion=${servicedomainVersion}
+		-DvirtualiseringArtifactId=${maindomain}-${subdomainFlow}-${artifactId}-${serviceContractVersion}
 		 $endpointAddress1
 		 $endpointAddress2
 		-DflowName=${maindomain}-${subdomainFlow}-${artifactId}-${serviceContractVersion}-Interaction-virtualisering-flow
