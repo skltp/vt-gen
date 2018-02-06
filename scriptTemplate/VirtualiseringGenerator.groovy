@@ -1,16 +1,14 @@
 #!/usr/bin/env groovy
-
 package se.skltpservices.tools
 
-import groovy.io.FileType
-
-org.apache.commons.io.FileUtils
-
 @Grab(group='commons-io', module='commons-io', version='1.3.2')
-import org.apache.commons.io.FileUtils
-
 @Grab(group='dom4j', module='dom4j', version='1.6.1')
+
+import groovy.io.FileType
+// org.apache.commons.io.FileUtils
+import org.apache.commons.io.FileUtils
 import org.dom4j.io.SAXReader
+
 
 /**
  * This script helps us to generate many services at one time.
@@ -29,6 +27,9 @@ import org.dom4j.io.SAXReader
  * TODO:
  *
  */
+
+
+def printelnerr = System.err.&println
 
 def getAllFilesMatching(direcory, pattern){
 	def filesFound = []
@@ -97,18 +98,18 @@ def checkDirectoriesAndFiles(serviceInteractionDirectories) {
 	}
 
 	if (multiple) {
-		println ""
-		println ""
-		println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-		println "Found multiple XSD and/or WSDL files, aborting..."
-		println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+		printelnerr ""
+		printelnerr ""
+		printelnerr "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+		printelnerr "Found multiple XSD and/or WSDL files, aborting..."
+		printelnerr "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 		System.exit(0)
 	} else if (found) {
-		println ""
-		println ""
-		println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-		println "Found incorrect versions in namespaces, aborting..."
-		println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+		printelnerr ""
+		printelnerr ""
+		printelnerr "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+		printelnerr "Found incorrect versions in namespaces, aborting..."
+		printelnerr "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 		System.exit(0)
 	}
 }
@@ -259,31 +260,43 @@ def copyCoreSchemas(serviceInteractionDirectories, coreSchemaDirectory, targetDi
 	}
 }
 
-if( args.size() < 2){
-	println "This tool generates service virtualising components based on service interactions found in sourceDir. They are generated in the dir where script is executed."
-	println "Point sourceDir to the schemas dir containing:"
-	println "core_components"
-	println "interactions"
-	println ""
-	println "To be able to run this tool you need to have the virtualServiceArchetype installed, found under tools/virtualization/[trunk|tags]/virtualServiceArchetype/."
-	println ""
-	println "Required parameters: source directory [sourceDir] \n"
-	println "PARAMETERS DESCRIPTION:"
-	println "[sourceDir] is the base direcory where this script will start working to look for servivce interactions, e.g /repository/rivta/ServiceInteractions/riv/crm/scheduling/trunk "
-	println "[servicedomain version] is the version for the service domain, e.g 2.1.0-RC2"
-	println "[shortname] (optional). If it has a value no subdomain is added to the endpoint URL."
-	println ""
-	println "OUTPUT:"
-	println "New maven folders containing service interactions"
-	return
+// --
+
+def appName = this.getClass().getSimpleName()
+def cli = new CliBuilder(
+	header: "---",
+	usage: "${appName} --sourceDir <path_to_dir> --servicedomain <servicedomain_version> ",
+	footer: "---\nThis tool generates service virtualising components based on service interactions found in <sourceDir>." 
+			+ "They are generated in the directory where script is executed."
+			+ "\nPoint --sourceDir to the schemas dir containing: [core_components] [interactions]."
+			+ "To be able to run this tool you need to have the virtualServiceArchetype installed,"
+			+ "found under [tools/virtualization/[trunk|tags]/virtualServiceArchetype/]"
+			+ "\nOUTPUT: New maven folders containing service interactions"
+			+ "\n"
+)
+
+cli.with {
+    d( longOpt: 'sourceDir', 'path to directory with jars', args: 1, required: true )
+    s( longOpt: 'servicedomain', 'version for the service domain, e.g 2.1.0-RC2', args: 1, required: true )
+    n( longOpt: 'shortname', '(optional). If it has a value no subdomain is added to the endpoint URL', args: 1, required: false )
+    h( longOpt: 'help', 'Print help', required: false )
 }
 
-def sourceDir = new File(args[0])
-def servicedomainVersion = args[1]
-def targetDir = new File(".").getAbsolutePath()
-def shortname = ""
-if(args.size() > 2)
-  shortname = args[2]
+OptionAccessor options = cli.parse(args)
+
+if (!options) return
+if (options.h) cli.usage()
+def sourceDir = new File(options.d)
+def servicedomainVersion = options.s
+def shortname = options.n ? options.n : ""
+def scriptDir = new File(getClass().protectionDomain.codeSource.location.path).parent
+def targetDir = new File('.').getCanonicalPath()
+
+println "sourceDir :${sourceDir}"
+println "servicedomainVersion :${servicedomainVersion}"
+println "shortname: ${shortname}"
+println "scriptDir: ${scriptDir}"
+println "targetDir: ${targetDir}"
 
 def serviceInteractionDirectories = getAllDirectoriesMatching(sourceDir,/.*Interaction$/)
 def coreSchemaDirectory = getAllDirectoriesMatching(sourceDir,/core_components/)[0]
@@ -291,12 +304,12 @@ def coreSchemaDirectory = getAllDirectoriesMatching(sourceDir,/core_components/)
 checkDirectoriesAndFiles(serviceInteractionDirectories)
 
 new File("pom.xml").delete()
-new File("${targetDir}/pom.xml") << new File("pomtemplate.xml").asWritable()
+//new File("${targetDir}/pom.xml") << new File(scriptDir, "pomtemplate.xml").asWritable()
+new File(targetDir, "pom.xml") << new File(scriptDir, "pomtemplate.xml").asWritable()
 
 buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomainVersion, shortname)
 copyServiceSchemas(serviceInteractionDirectories, targetDir)
 copyCoreSchemas(serviceInteractionDirectories, coreSchemaDirectory, targetDir)
 
-println ""
 println ""
 println "NOTE! Run mvn clean package to build deployable jar-files for service platform without adding to your local repo"
