@@ -4,8 +4,6 @@ package se.skltpservices.tools
 
 import groovy.io.FileType
 
-org.apache.commons.io.FileUtils
-
 @Grab(group='commons-io', module='commons-io', version='1.3.2')
 import org.apache.commons.io.FileUtils
 
@@ -70,9 +68,15 @@ def getServiceContractNameSpace(xsdFile){
 
 def checkDirectoriesAndFiles(serviceInteractionDirectories) {
 	def found = false
+	def missing = false
 	def multiple = false
 	serviceInteractionDirectories.each { serviceInteractionDirectory ->
-		if (getAllFilesMatching(serviceInteractionDirectory, /.*\.wsdl/).size() != 1) {
+		def wsdlFiles = getAllFilesMatching(serviceInteractionDirectory, /.*\.wsdl/)
+		if (wsdlFiles.size() < 1) {
+			missing = true
+			println "ERROR: Didn't find any WSDL file in " + serviceInteractionDirectory.toString()
+			println "\tPlease supply one WSDL file for each contract!"
+		} else if (wsdlFiles.size() > 1) {
 			multiple = true
 			println "ERROR: Found multiple WSDL files in " + serviceInteractionDirectory.toString()
 			println "\tPlease only supply one WSDL file for each contract!"
@@ -82,34 +86,43 @@ def checkDirectoriesAndFiles(serviceInteractionDirectories) {
 			!(file.name ==~ /.*_ext.*/)
 		}
 
-		if (xsdFiles.size() != 1) {
+		if (xsdFiles.size() > 1) {
 			multiple = true
 			println "ERROR: Found more than one XSD file in " + serviceInteractionDirectory.toString()
 			xsdFiles.each {file -> println("\t" + file.name)}
 		}
 
 		// Check that namespace has a 1-digit version number, if not fail!
-		def version = getServiceContractNameSpaceVersion(xsdFiles[0])
-		if (version.indexOf('.') > 0) {
-			found = true
-			println "Incorrect version number for the following service contract! " + serviceInteractionDirectory.toString() + ". Version is: " + version
+		if (xsdFiles.size() > 0) {
+			def version = getServiceContractNameSpaceVersion(xsdFiles[0])
+			if (version.indexOf('.') > 0) {
+				found = true
+				println "Incorrect version number for the following service contract! " + serviceInteractionDirectory.toString() + ". Version is: " + version
+			}
 		}
 	}
 
-	if (multiple) {
+	if (missing) {
+		println ""
+		println ""
+		println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+		println "Missing WSDL file, aborting..."
+		println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+		System.exit(1)
+	} else if (multiple) {
 		println ""
 		println ""
 		println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 		println "Found multiple XSD and/or WSDL files, aborting..."
 		println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-		System.exit(0)
+		System.exit(1)
 	} else if (found) {
 		println ""
 		println ""
 		println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
 		println "Found incorrect versions in namespaces, aborting..."
 		println "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-		System.exit(0)
+		System.exit(1)
 	}
 }
 
@@ -215,6 +228,10 @@ def buildVirtualServices(serviceInteractionDirectories, targetDir, servicedomain
 		// Obtain status and output
 		println "RETURN CODE: ${ process.exitValue()}"
 		println "STDOUT: ${process.in.text}"
+
+		if (process.exitValue() != 0) {
+			System.exit 1
+		}
 	}
 }
 
